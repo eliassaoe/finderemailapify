@@ -1,19 +1,21 @@
 {
   "name": "unlimited-leads-email-finder",
   "version": "1.0.0",
-  "description": "Unlimited Leads Email Finder Apify Actor",
+  "description": "Professional email finder powered by Unlimited Leads",
   "main": "main.js",
-  "type": "module",
   "scripts": {
-    "start": "node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node main.js"
   },
-  "author": "Unlimited Leads",
-  "license": "ISC",
   "dependencies": {
-    "apify": "^3.1.0"
+    "apify": "^3.1.0",
+    "axios": "^1.6.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "keywords": [
+    "email-finder",
+    "lead-generation",
+    "unlimited-leads",
+    "contact-finder"
+  ],
+  "author": "Unlimited Leads",
+  "license": "MIT"
 }
