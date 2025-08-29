@@ -1,14 +1,6 @@
-# Use official Apify SDK image
-FROM apify/actor-node:18
-
-# Copy package files
+FROM apify/actor-node:16
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install --omit=dev
-
-# Copy source code
+RUN npm --quiet set progress=false \
+    && npm install --omit=dev --omit=optional
 COPY . ./
-
-# Start the actor
 CMD npm start
