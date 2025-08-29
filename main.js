@@ -10,8 +10,15 @@ const input = await Actor.getInput();
 console.log('Input:', input);
 
 // Validate input
-if (!input || !input.people || !Array.isArray(input.people)) {
-    throw new Error('Input must contain a "people" array');
+if (!input || !input.people || !Array.isArray(input.people) || input.people.length === 0) {
+    console.log('No people provided in input. Please add people to search for emails.');
+    await Actor.pushData([{
+        type: 'INFO',
+        message: 'No people provided. Please add people in the format: firstName,lastName,domain',
+        example: ['John,Doe,example.com', 'Jane,Smith,google.com'],
+        timestamp: new Date().toISOString()
+    }]);
+    await Actor.exit();
 }
 
 const WEBHOOK_URL = 'https://eliasse-n8n.onrender.com/webhook/5025b111-5648-4eac-b813-a78f9662b582';
