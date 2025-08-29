@@ -1,0 +1,22 @@
+{
+  "actorSpecification": 1,
+  "name": "unlimited-leads-email-finder",
+  "title": "Unlimited Leads Email Finder",
+  "description": "Bulk email finder powered by Unlimited Leads API. Upload a list of prospects with their name and company domain to find their professional email addresses. Supports CSV, TSV, and semicolon-separated formats. Returns verified emails with confidence scores.",
+  "version": "1.0.0",
+  "meta": {
+    "templateId": "javascript-node"
+  },
+  "input": "input_schema.json",
+  "dockerfile": "./Dockerfile",
+  "readme": "./README.md",
+  "categories": [
+    "LEAD_GENERATION",
+    "INTEGRATIONS"
+  ],
+  "defaultRunOptions": {
+    "build": "latest",
+    "timeoutSecs": 3600,
+    "memoryMbytes": 1024
+  }
+}
