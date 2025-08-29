@@ -1,0 +1,42 @@
+{
+  "title": "Unlimited Leads Email Finder Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "people": {
+      "title": "People to search",
+      "type": "array",
+      "description": "List of people to find emails for. Each entry should be in format: firstName,lastName,domain or firstName lastName,domain",
+      "editor": "stringList",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 5000,
+      "example": [
+        "John,Doe,example.com",
+        "Jane,Smith,google.com",
+        "Pierre,Dupont,microsoft.com"
+      ]
+    },
+    "batchSize": {
+      "title": "Batch Size",
+      "type": "integer",
+      "description": "Number of requests to process in parallel (1-50)",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 10
+    },
+    "delayBetweenRequests": {
+      "title": "Delay Between Requests (ms)",
+      "type": "integer",
+      "description": "Delay between API requests in milliseconds to avoid rate limiting",
+      "minimum": 100,
+      "maximum": 10000,
+      "default": 1000
+    }
+  },
+  "required": [
+    "people"
+  ]
+}
