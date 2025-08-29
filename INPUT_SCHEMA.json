@@ -36,7 +36,5 @@
       "default": 1000
     }
   },
-  "required": [
-    "people"
-  ]
+
 }
