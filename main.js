@@ -10,12 +10,16 @@ const input = await Actor.getInput();
 console.log('Input:', input);
 
 // Validate input
-if (!input || !input.people || !Array.isArray(input.people) || input.people.length === 0) {
-    console.log('No people provided in input. Please add people to search for emails.');
+if (!input || (!input.firstName && !input.lastName) || !input.domain) {
+    console.log('Missing required information. Please provide at least first name or last name, and company website.');
     await Actor.pushData([{
         type: 'INFO',
-        message: 'No people provided. Please add people in the format: firstName,lastName,domain',
-        example: ['John,Doe,example.com', 'Jane,Smith,google.com'],
+        message: 'Please provide at least first name or last name, and company website domain',
+        example: {
+            firstName: 'John',
+            lastName: 'Doe', 
+            domain: 'example.com'
+        },
         timestamp: new Date().toISOString()
     }]);
     await Actor.exit();
@@ -23,49 +27,14 @@ if (!input || !input.people || !Array.isArray(input.people) || input.people.leng
 
 const WEBHOOK_URL = 'https://eliasse-n8n.onrender.com/webhook/5025b111-5648-4eac-b813-a78f9662b582';
 
-// Function to parse a single person entry
-function parsePerson(personString) {
-    // Support multiple formats: CSV, TSV, semicolon-separated
-    let parts;
-    if (personString.includes('\t')) {
-        parts = personString.split('\t');
-    } else if (personString.includes(';')) {
-        parts = personString.split(';');
-    } else {
-        parts = personString.split(',');
-    }
-    
-    // Clean up parts (trim whitespace)
-    parts = parts.map(part => part.trim());
-    
-    // Handle different formats
-    if (parts.length >= 3) {
-        return {
-            firstName: parts[0] || '',
-            lastName: parts[1] || '',
-            domain: parts[2] || ''
-        };
-    } else if (parts.length === 2) {
-        // Assume it's name and domain
-        const nameParts = parts[0].split(' ');
-        return {
-            firstName: nameParts[0] || '',
-            lastName: nameParts.slice(1).join(' ') || '',
-            domain: parts[1] || ''
-        };
-    }
-    
-    throw new Error(`Invalid person format: ${personString}`);
-}
-
 // Function to make API call to webhook
 async function findEmail(person) {
     try {
         console.log(`Searching email for: ${person.firstName} ${person.lastName} at ${person.domain}`);
         
         const response = await axios.post(WEBHOOK_URL, {
-            firstName: person.firstName,
-            lastName: person.lastName,
+            firstName: person.firstName || '',
+            lastName: person.lastName || '',
             domain: person.domain,
             source: 'unlimited-leads'
         }, {
@@ -98,77 +67,29 @@ async function findEmail(person) {
     }
 }
 
-// Process all people
-const results = [];
-const batchSize = 10; // Process in batches to avoid overwhelming the webhook
-const delay = 1000; // 1 second delay between requests
-
-console.log(`Processing ${input.people.length} entries in batches of ${batchSize}`);
-
-for (let i = 0; i < input.people.length; i += batchSize) {
-    const batch = input.people.slice(i, i + batchSize);
-    console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(input.people.length / batchSize)}`);
-    
-    // Parse people in current batch
-    const parsedBatch = [];
-    for (const personString of batch) {
-        try {
-            const person = parsePerson(personString);
-            
-            // Validate required fields
-            if (!person.domain) {
-                throw new Error('Domain is required');
-            }
-            if (!person.firstName && !person.lastName) {
-                throw new Error('At least firstName or lastName must be provided');
-            }
-            
-            parsedBatch.push(person);
-        } catch (error) {
-            console.error(`Error parsing person "${personString}":`, error.message);
-            results.push({
-                originalInput: personString,
-                status: 'ERROR',
-                error: `Parse error: ${error.message}`,
-                timestamp: new Date().toISOString()
-            });
-        }
-    }
-    
-    // Process parsed batch
-    const batchPromises = parsedBatch.map(async (person, index) => {
-        // Add delay to avoid rate limiting
-        if (index > 0) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-        return findEmail(person);
-    });
-    
-    const batchResults = await Promise.all(batchPromises);
-    results.push(...batchResults);
-    
-    // Save intermediate results
-    await Actor.pushData(batchResults);
-    
-    console.log(`Batch completed. Total processed: ${results.length}/${input.people.length}`);
-}
-
-// Final statistics
-const stats = {
-    total: results.length,
-    found: results.filter(r => r.status === 'FOUND').length,
-    notFound: results.filter(r => r.status === 'NOT_FOUND').length,
-    errors: results.filter(r => r.status === 'ERROR').length
+// Clean and prepare input
+const person = {
+    firstName: input.firstName?.trim() || '',
+    lastName: input.lastName?.trim() || '',
+    domain: input.domain?.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '') || ''
 };
 
-console.log('Final Statistics:', stats);
+console.log(`Processing email search for: ${person.firstName} ${person.lastName} at ${person.domain}`);
 
-// Save final statistics
-await Actor.pushData([{
-    type: 'STATISTICS',
-    ...stats,
-    timestamp: new Date().toISOString()
-}]);
+// Find the email
+const result = await findEmail(person);
+
+// Save result
+await Actor.pushData([result]);
+
+// Log result
+if (result.status === 'FOUND') {
+    console.log(`✅ Email found: ${result.email} (Certainty: ${result.certainty || 'N/A'})`);
+} else if (result.status === 'NOT_FOUND') {
+    console.log(`❌ No email found for ${person.firstName} ${person.lastName} at ${person.domain}`);
+} else {
+    console.log(`⚠️ Error occurred: ${result.error}`);
+}
 
 // Finish the actor
 await Actor.exit();
