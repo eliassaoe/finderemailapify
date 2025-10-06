@@ -1,22 +1,25 @@
 {
-  "title": "Email Finder Input",
+  "title": "Email Validator Input",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
-    "firstName": {
-      "title": "First Name",
-      "type": "string",
-      "editor": "textfield"
+    "emails": {
+      "title": "Email Addresses",
+      "type": "array",
+      "editor": "stringList",
+      "description": "List of email addresses to validate (one per line)",
+      "example": ["john.doe@example.com", "jane.smith@company.com"],
+      "placeholderValue": ["email1@example.com", "email2@company.com"]
     },
-    "lastName": {
-      "title": "Last Name",
-      "type": "string",
-      "editor": "textfield"
-    },
-    "companyWebsite": {
-      "title": "Company Website",
-      "type": "string",
-      "editor": "textfield"
+    "delayBetweenRequests": {
+      "title": "Delay Between Requests (ms)",
+      "type": "integer",
+      "editor": "number",
+      "description": "Delay between each validation request in milliseconds",
+      "default": 1000,
+      "minimum": 100,
+      "maximum": 10000
     }
-  }
+  },
+  "required": ["emails"]
 }
