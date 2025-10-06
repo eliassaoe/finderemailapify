@@ -1,8 +1,8 @@
 {
   "actorSpecification": 1,
-  "name": "unlimited-leads-email-finder",
-  "title": "Unlimited Leads Email Finder",
-  "description": "Bulk email finder powered by Unlimited Leads API. Upload a list of prospects with their name and company domain to find their professional email addresses. Supports CSV, TSV, and semicolon-separated formats. Returns verified emails with confidence scores.",
+  "name": "email-validator",
+  "title": "Email Validator",
+  "description": "Validate multiple email addresses sequentially using a professional validation API. Enter a list of email addresses and receive individual validation results for each one. The actor processes emails one by one with configurable delays to respect API rate limits.",
   "version": "1.0.0",
   "meta": {
     "templateId": "javascript-node"
@@ -17,6 +17,6 @@
   "defaultRunOptions": {
     "build": "latest",
     "timeoutSecs": 3600,
-    "memoryMbytes": 1024
+    "memoryMbytes": 512
   }
 }
