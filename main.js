@@ -1,123 +1,95 @@
 const { Actor } = require('apify');
 const axios = require('axios');
 
-// Helper function to delay between requests
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 Actor.main(async () => {
-    console.log('🚀 Email Validator Starting...');
+    console.log('🚀 Unlimited Leads Email Finder Starting...');
     
     // Get input
     const input = await Actor.getInput();
     
-    if (!input || !input.emails || input.emails.length === 0) {
-        console.log('ℹ️ No emails provided. Please provide email addresses to validate.');
+    if (!input) {
+        console.log('ℹ️ No input provided. Please provide firstName, lastName, and companyWebsite.');
         await Actor.pushData([{
-            message: 'Please provide email addresses to validate',
+            message: 'Please provide firstName, lastName, and companyWebsite',
             example: {
-                emails: ['john.doe@example.com', 'jane.smith@company.com']
+                firstName: 'John',
+                lastName: 'Doe',
+                companyWebsite: 'example.com'
             }
         }]);
         return;
     }
     
-    const { 
-        emails,
-        delayBetweenRequests = 75000
+    const {
+        firstName,
+        lastName,
+        companyWebsite
     } = input;
     
-    console.log('🎯 Validation Details:');
-    console.log(`📧 Total emails to validate: ${emails.length}`);
-    console.log(`⏱️ Delay between requests: ${delayBetweenRequests}ms`);
+    console.log('🎯 Search Details:');
+    console.log(`👤 Name: ${firstName} ${lastName}`);
+    console.log(`🏢 Company: ${companyWebsite}`);
     
-    // Email validation webhook
-    const WEBHOOK_URL = 'https://eliasse-n8n.onrender.com/webhook/7cedef2b-7921-476c-a1d9-b62adaf12522';
+    // Unlimited Leads email finder webhook
+    const WEBHOOK_URL = 'https://eliasse-n8n.onrender.com/webhook/5025b111-5648-4eac-b813-a78f9662b582';
     
-    // Statistics
-    const stats = {
-        total: emails.length,
-        valid: 0,
-        invalid: 0,
-        errors: 0
-    };
-    
-    // Process each email one by one
-    for (let i = 0; i < emails.length; i++) {
-        const email = emails[i].trim();
+    try {
+        console.log('🔍 Searching email with Unlimited Leads engine...');
         
-        console.log(`\n📧 [${i + 1}/${emails.length}] Validating: ${email}`);
+        // Prepare payload
+        const payload = {
+            firstName: firstName || '',
+            lastName: lastName || '',
+            domain: companyWebsite || '',
+            source: 'unlimited-leads'
+        };
         
-        try {
-            // Prepare payload
-            const payload = {
-                email: email,
-                source: 'email-validator',
-                timestamp: new Date().toISOString()
-            };
-            
-            // Send validation request
-            const response = await axios.post(WEBHOOK_URL, payload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'Email-Validator/1.0'
-                },
-                timeout: 30000
-            });
-            
-            console.log('✅ Response received');
-            
-            const result = {
-                email: email,
-                ...response.data,
-                timestamp: new Date().toISOString()
-            };
-            
-            // Save result
-            await Actor.pushData([result]);
-            
-            // Update statistics
-            if (result.valid === true || result.isValid === true || result.status === 'VALID') {
-                stats.valid++;
-                console.log(`✅ Email is VALID: ${email}`);
-                if (result.score) {
-                    console.log(`📊 Validation Score: ${result.score}%`);
-                }
-            } else if (result.valid === false || result.isValid === false || result.status === 'INVALID') {
-                stats.invalid++;
-                console.log(`❌ Email is INVALID: ${email}`);
-                if (result.reason) {
-                    console.log(`ℹ️ Reason: ${result.reason}`);
-                }
+        // Send request
+        const response = await axios.post(WEBHOOK_URL, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Unlimited-Leads-Email-Finder/1.0'
+            },
+            timeout: 30000
+        });
+        
+        console.log('✅ Response received from Unlimited Leads backend');
+        
+        const result = {
+            firstName: firstName,
+            lastName: lastName,
+            companyWebsite: companyWebsite,
+            ...response.data,
+            status: response.data.email ? 'FOUND' : 'NOT_FOUND',
+            timestamp: new Date().toISOString()
+        };
+        
+        // Save result
+        await Actor.pushData([result]);
+        
+        if (result.status === 'FOUND') {
+            console.log(`🎉 Email found: ${result.email}`);
+            if (result.certainty) {
+                console.log(`📊 Certainty: ${result.certainty}%`);
             }
-            
-        } catch (error) {
-            stats.errors++;
-            console.error(`❌ Error validating email: ${error.message}`);
-            
-            const errorResult = {
-                email: email,
-                valid: false,
-                status: 'ERROR',
-                error: error.message,
-                timestamp: new Date().toISOString()
-            };
-            
-            await Actor.pushData([errorResult]);
+        } else {
+            console.log('❌ No email found');
         }
         
-        // Add delay between requests (except after the last one)
-        if (i < emails.length - 1) {
-            console.log(`⏳ Waiting ${delayBetweenRequests}ms before next request...`);
-            await delay(delayBetweenRequests);
-        }
+    } catch (error) {
+        console.error('❌ Error finding email:', error.message);
+        
+        const errorResult = {
+            firstName: firstName,
+            lastName: lastName,
+            companyWebsite: companyWebsite,
+            status: 'ERROR',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        };
+        
+        await Actor.pushData([errorResult]);
     }
     
-    // Log final statistics
-    console.log('\n📊 Final Statistics:');
-    console.log(`✅ Valid: ${stats.valid}`);
-    console.log(`❌ Invalid: ${stats.invalid}`);
-    console.log(`⚠️ Errors: ${stats.errors}`);
-    console.log(`📧 Total: ${stats.total}`);
-    
-    console.log('\n🏁 Email Validator Finished');
+    console.log('🏁 Unlimited Leads Email Finder Finished');
 });
