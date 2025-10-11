@@ -23,7 +23,7 @@ Actor.main(async () => {
     
     const { 
         emails,
-        delayBetweenRequests = 1000
+        delayBetweenRequests = 75000
     } = input;
     
     console.log('🎯 Validation Details:');
